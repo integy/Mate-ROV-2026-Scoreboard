@@ -203,6 +203,7 @@
     <div class="team-info">
         <input type="text" id="teamName" placeholder="Company/Team Name" onchange="saveData()">
         <input type="text" id="ceoName" placeholder="CEO Name" onchange="saveData()">
+        <input type="number" id="trialRun" min="1" max="5" value="1" onchange="saveData()">
         <input type="text" id="judgeName" placeholder="Judge Name" onchange="saveData()">
         <input type="text" id="sheetUrl" placeholder="Google Sheets URL (optional)" onchange="saveData()" style="grid-column: 1 / -1;">
     </div>
@@ -422,6 +423,7 @@
                 teamName: document.getElementById('teamName').value,
                 ceoName: document.getElementById('ceoName').value,
                 judgeName: document.getElementById('judgeName').value,
+                trialRun: document.getElementById('trialRun').value,
                 sheetUrl: document.getElementById('sheetUrl').value,
                 scores: scores,
                 values: values
@@ -437,6 +439,7 @@
                 document.getElementById('ceoName').value = data.ceoName || '';
                 document.getElementById('judgeName').value = data.judgeName || '';
                 document.getElementById('sheetUrl').value = data.sheetUrl || '';
+                document.getElementById('trialRun').value = data.trialRun || 1;
                 if (data.scores) {
                     scores.weight = data.scores.weight || 0;
                     document.getElementById('score-weight').textContent = scores.weight + '/10';
@@ -459,6 +462,7 @@
                 teamName: document.getElementById('teamName').value,
                 ceoName: document.getElementById('ceoName').value,
                 judgeName: document.getElementById('judgeName').value,
+                trialRun: document.getElementById('trialRun').value,
                 scores: scores,
                 values: values
             };
@@ -525,6 +529,7 @@
                 teamName: document.getElementById('teamName').value,
                 ceoName: document.getElementById('ceoName').value,
                 judgeName: document.getElementById('judgeName').value,
+                trialRun: document.getElementById('trialRun').value,
                 rovClass: document.getElementById('rovClass').value,
                 scores: scores,
                 totalScore: scores.safety + scores.org + scores.weight + scores.t1 + scores.t2 + scores.t3 + scores.t4
