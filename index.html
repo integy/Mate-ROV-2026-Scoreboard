@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-HK">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MATE ROV 2026 Explorer Class 計分板</title>
+    <title>MATE ROV 2026 Explorer Class Scoreboard</title>
     <style>
         :root {
             --bg-dark: #0a1628;
@@ -99,17 +99,31 @@
             border-radius: 8px;
             margin-bottom: 8px;
             border: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 10px;
         }
-        .score-item .label { flex: 1; font-size: 0.85rem; }
+        .score-item .label { flex: 1; font-size: 0.85rem; min-width: 200px; }
         .score-item .input-group { display: flex; align-items: center; gap: 8px; }
-        .score-item input[type="number"] {
-            width: 55px;
-            padding: 6px 8px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 5px;
-            color: var(--text);
-            text-align: center;
+        .score-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 36px;
+        }
+        .score-btn.minus { background: var(--red); color: white; }
+        .score-btn.plus { background: var(--green); color: white; }
+        .score-btn:hover { transform: scale(1.1); }
+        .score-item .value { 
+            min-width: 40px; 
+            text-align: center; 
+            font-size: 1.1rem; 
+            font-weight: bold;
+            color: var(--accent);
         }
         .score-item .max-points { font-size: 0.75rem; color: var(--text-dim); min-width: 30px; }
         .weight-selector { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; }
@@ -142,7 +156,7 @@
         @media (max-width: 600px) {
             .header h1 { font-size: 1.3rem; }
             .score-display .total-score { font-size: 2.2rem; }
-            .score-item { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .score-item { flex-direction: column; align-items: flex-start; }
             .score-item .input-group { width: 100%; justify-content: space-between; }
         }
     </style>
@@ -154,21 +168,21 @@
     </div>
 
     <div class="team-info">
-        <input type="text" id="teamName" placeholder="公司/團隊名稱" onchange="saveData()">
-        <input type="text" id="ceoName" placeholder="CEO 姓名" onchange="saveData()">
-        <input type="text" id="judgeName" placeholder="裁判姓名" onchange="saveData()">
+        <input type="text" id="teamName" placeholder="Company/Team Name" onchange="saveData()">
+        <input type="text" id="ceoName" placeholder="CEO Name" onchange="saveData()">
+        <input type="text" id="judgeName" placeholder="Judge Name" onchange="saveData()">
     </div>
 
     <div class="score-display">
-        <div class="total-label">總分</div>
+        <div class="total-label">TOTAL SCORE</div>
         <div class="total-score" id="totalScore">0</div>
-        <div class="max-score">/ 375 分</div>
+        <div class="max-score">/ 375 pts</div>
     </div>
 
     <div class="tabs">
-        <button class="tab-btn active" onclick="showTab('safety')">🛡️ <span class="tab-score" id="score-safety">0/5</span></button>
-        <button class="tab-btn" onclick="showTab('org')">📊 <span class="tab-score" id="score-org">0/10</span></button>
-        <button class="tab-btn" onclick="showTab('weight')">⚖️ <span class="tab-score" id="score-weight">0/10</span></button>
+        <button class="tab-btn active" onclick="showTab('safety')">Safety <span class="tab-score" id="score-safety">0/5</span></button>
+        <button class="tab-btn" onclick="showTab('org')">Org <span class="tab-score" id="score-org">0/10</span></button>
+        <button class="tab-btn" onclick="showTab('weight')">Weight <span class="tab-score" id="score-weight">0/10</span></button>
         <button class="tab-btn" onclick="showTab('task1')">T1 <span class="tab-score" id="score-task1">0/85</span></button>
         <button class="tab-btn" onclick="showTab('task2')">T2 <span class="tab-score" id="score-task2">0/135</span></button>
         <button class="tab-btn" onclick="showTab('task3')">T3 <span class="tab-score" id="score-task3">0/60</span></button>
@@ -177,153 +191,153 @@
 
     <!-- Safety -->
     <div id="safety" class="tab-content active">
-        <div class="section-title">🛡️ 安全檢查 (5 分)</div>
+        <div class="section-title">🛡️ Safety Check (5 pts)</div>
         <div class="checkbox-item">
-            <input type="checkbox" id="safetyCard" onchange="calculateScore()">
-            <label class="checkbox-label" for="safetyCard">✅ 安全檢查通行證</label>
+            <input type="checkbox" id="safetyCard" onchange="calc()">
+            <label class="checkbox-label" for="safetyCard">✅ PASSED Safety Inspection Card</label>
         </div>
         <div class="checkbox-item">
-            <input type="checkbox" id="jsea" onchange="calculateScore()">
-            <label class="checkbox-label" for="jsea">✅ 已提交 JSEA</label>
+            <input type="checkbox" id="jsea" onchange="calc()">
+            <label class="checkbox-label" for="jsea">✅ JSEA Presented</label>
         </div>
     </div>
 
     <!-- Organization -->
     <div id="org" class="tab-content">
-        <div class="section-title">📊 組織效能 (10 分)</div>
+        <div class="section-title">📊 Organizational Effectiveness (10 pts)</div>
         <div class="sub-task">
-            <div class="sub-task-title">Teamwork (4分)</div>
-            <div class="score-item"><div class="label">指揮鏈明顯</div><div class="input-group"><input type="number" min="0" max="1" value="0" data-cat="org" data-idx="0" onchange="calc()"><span class="max-points">/1</span></div></div>
-            <div class="score-item"><div class="label">角色清晰</div><div class="input-group"><input type="number" min="0" max="1" value="0" data-cat="org" data-idx="1" onchange="calc()"><span class="max-points">/1</span></div></div>
-            <div class="score-item"><div class="label">壓力下鎮定</div><div class="input-group"><input type="number" min="0" max="1" value="0" data-cat="org" data-idx="2" onchange="calc()"><span class="max-points">/1</span></div></div>
-            <div class="score-item"><div class="label">良好溝通</div><div class="input-group"><input type="number" min="0" max="1" value="0" data-cat="org" data-idx="3" onchange="calc()"><span class="max-points">/1</span></div></div>
+            <div class="sub-task-title">Teamwork/Collaboration (4pts)</div>
+            <div class="score-item"><div class="label">Chain of command evident</div><div class="input-group"><button class="score-btn minus" onclick="adj('org',0,-1)">-</button><span class="value" id="v-org-0">0</span><button class="score-btn plus" onclick="adj('org',0,1)">+</button><span class="max-points">/1</span></div></div>
+            <div class="score-item"><div class="label">Roles clear and executed well</div><div class="input-group"><button class="score-btn minus" onclick="adj('org',1,-1)">-</button><span class="value" id="v-org-1">0</span><button class="score-btn plus" onclick="adj('org',1,1)">+</button><span class="max-points">/1</span></div></div>
+            <div class="score-item"><div class="label">Composure under pressure</div><div class="input-group"><button class="score-btn minus" onclick="adj('org',2,-1)">-</button><span class="value" id="v-org-2">0</span><button class="score-btn plus" onclick="adj('org',2,1)">+</button><span class="max-points">/1</span></div></div>
+            <div class="score-item"><div class="label">Supportive and communicate well</div><div class="input-group"><button class="score-btn minus" onclick="adj('org',3,-1)">-</button><span class="value" id="v-org-3">0</span><button class="score-btn plus" onclick="adj('org',3,1)">+</button><span class="max-points">/1</span></div></div>
         </div>
         <div class="sub-task">
-            <div class="sub-task-title">Project Management (2分)</div>
-            <div class="score-item"><div class="label">任務計劃周詳</div><div class="input-group"><input type="number" min="0" max="1" value="0" data-cat="org" data-idx="4" onchange="calc()"><span class="max-points">/1</span></div></div>
-            <div class="score-item"><div class="label">有備用計劃</div><div class="input-group"><input type="number" min="0" max="1" value="0" data-cat="org" data-idx="5" onchange="calc()"><span class="max-points">/1</span></div></div>
+            <div class="sub-task-title">Project Management (2pts)</div>
+            <div class="score-item"><div class="label">Task plan well thought out</div><div class="input-group"><button class="score-btn minus" onclick="adj('org',4,-1)">-</button><span class="value" id="v-org-4">0</span><button class="score-btn plus" onclick="adj('org',4,1)">+</button><span class="max-points">/1</span></div></div>
+            <div class="score-item"><div class="label">Alternate plans available</div><div class="input-group"><button class="score-btn minus" onclick="adj('org',5,-1)">-</button><span class="value" id="v-org-5">0</span><button class="score-btn plus" onclick="adj('org',5,1)">+</button><span class="max-points">/1</span></div></div>
         </div>
         <div class="sub-task">
-            <div class="sub-task-title">Problem Solving (2分)</div>
-            <div class="score-item"><div class="label">時間意識</div><div class="input-group"><input type="number" min="0" max="1" value="0" data-cat="org" data-idx="6" onchange="calc()"><span class="max-points">/1</span></div></div>
-            <div class="score-item"><div class="label">調整時間線</div><div class="input-group"><input type="number" min="0" max="1" value="0" data-cat="org" data-idx="7" onchange="calc()"><span class="max-points">/1</span></div></div>
+            <div class="sub-task-title">Problem Solving (2pts)</div>
+            <div class="score-item"><div class="label">Awareness of time</div><div class="input-group"><button class="score-btn minus" onclick="adj('org',6,-1)">-</button><span class="value" id="v-org-6">0</span><button class="score-btn plus" onclick="adj('org',6,1)">+</button><span class="max-points">/1</span></div></div>
+            <div class="score-item"><div class="label">Adjusting timeline to adapt</div><div class="input-group"><button class="score-btn minus" onclick="adj('org',7,-1)">-</button><span class="value" id="v-org-7">0</span><button class="score-btn plus" onclick="adj('org',7,1)">+</button><span class="max-points">/1</span></div></div>
         </div>
         <div class="sub-task">
-            <div class="sub-task-title">System Design (2分)</div>
-            <div class="score-item"><div class="label">5分鐘內部署</div><div class="input-group"><input type="number" min="0" max="1" value="0" data-cat="org" data-idx="8" onchange="calc()"><span class="max-points">/1</span></div></div>
-            <div class="score-item"><div class="label">準備好執行</div><div class="input-group"><input type="number" min="0" max="1" value="0" data-cat="org" data-idx="9" onchange="calc()"><span class="max-points">/1</span></div></div>
+            <div class="sub-task-title">System Design (2pts)</div>
+            <div class="score-item"><div class="label">ROV deployed by end of 5-min setup</div><div class="input-group"><button class="score-btn minus" onclick="adj('org',8,-1)">-</button><span class="value" id="v-org-8">0</span><button class="score-btn plus" onclick="adj('org',8,1)">+</button><span class="max-points">/1</span></div></div>
+            <div class="score-item"><div class="label">ROV under control, prepared to perform</div><div class="input-group"><button class="score-btn minus" onclick="adj('org',9,-1)">-</button><span class="value" id="v-org-9">0</span><button class="score-btn plus" onclick="adj('org',9,1)">+</button><span class="max-points">/1</span></div></div>
         </div>
     </div>
 
     <!-- Weight -->
     <div id="weight" class="tab-content">
-        <div class="section-title">⚖️ 重量獎勵 (10 分)</div>
+        <div class="section-title">⚖️ Weight Bonus (10 pts)</div>
         <div class="weight-selector">
             <div class="weight-option" onclick="selectWeight(10, this)"><div class="weight-range">&lt;18kg</div><div class="weight-points">+10</div></div>
             <div class="weight-option" onclick="selectWeight(5, this)"><div class="weight-range">18-25kg</div><div class="weight-points">+5</div></div>
             <div class="weight-option selected" onclick="selectWeight(0, this)"><div class="weight-range">25-35kg</div><div class="weight-points">+0</div></div>
-            <div class="weight-option" onclick="selectWeight(-999, this)"><div class="weight-range">&gt;35kg</div><div class="weight-points">❌</div></div>
+            <div class="weight-option" onclick="selectWeight(-999, this)"><div class="weight-range">&gt;35kg</div><div class="weight-points">❌ DQ</div></div>
         </div>
     </div>
 
     <!-- Task 1 -->
     <div id="task1" class="tab-content">
-        <div class="task-header">Task 1: Seabed 2030 (85 分)</div>
-        <div class="sub-task"><div class="sub-task-title">1.1 收集 (30分)</div>
-            <div class="score-item"><div class="label">籃星</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t1" data-idx="0" onchange="calc()"><span class="max-points">/10</span></div></div>
-            <div class="score-item"><div class="label">珊瑚</div><div class="input-group"><input type="number" min="0" max="20" value="0" data-cat="t1" data-idx="1" onchange="calc()"><span class="max-points">/20</span></div></div>
+        <div class="task-header">Task 1: Seabed 2030 (85 pts)</div>
+        <div class="sub-task"><div class="sub-task-title">1.1 Collect Species (30pts)</div>
+            <div class="score-item"><div class="label">Basket Stars (5pts each)</div><div class="input-group"><button class="score-btn minus" onclick="adj('t1',0,-1)">-</button><span class="value" id="v-t1-0">0</span><button class="score-btn plus" onclick="adj('t1',0,1)">+</button><span class="max-points">/10</span></div></div>
+            <div class="score-item"><div class="label">Coral Species (10pts each)</div><div class="input-group"><button class="score-btn minus" onclick="adj('t1',1,-2)">-</button><span class="value" id="v-t1-1">0</span><button class="score-btn plus" onclick="adj('t1',1,2)">+</button><span class="max-points">/20</span></div></div>
         </div>
-        <div class="sub-task"><div class="sub-task-title">1.2 建模 (40分)</div>
-            <div class="score-item"><div class="label">攝影測量</div><div class="input-group"><input type="number" min="0" max="20" value="0" data-cat="t1" data-idx="2" onchange="calc()"><span class="max-points">/20</span></div></div>
-            <div class="score-item"><div class="label">顯示目標</div><div class="input-group"><input type="number" min="0" max="15" value="0" data-cat="t1" data-idx="3" onchange="calc()"><span class="max-points">/15</span></div></div>
-            <div class="score-item"><div class="label">測量長度</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t1" data-idx="4" onchange="calc()"><span class="max-points">/10</span></div></div>
-            <div class="score-item"><div class="label">估算高度</div><div class="input-group"><input type="number" min="0" max="5" value="0" data-cat="t1" data-idx="5" onchange="calc()"><span class="max-points">/5</span></div></div>
+        <div class="sub-task"><div class="sub-task-title">1.2 Coral Ridge Modeling (40pts)</div>
+            <div class="score-item"><div class="label">Photogrammetry 3D Model</div><div class="input-group"><button class="score-btn minus" onclick="adj('t1',2,-5)">-</button><span class="value" id="v-t1-2">0</span><button class="score-btn plus" onclick="adj('t1',2,5)">+</button><span class="max-points">/20</span></div></div>
+            <div class="score-item"><div class="label">Model Shows Targets</div><div class="input-group"><button class="score-btn minus" onclick="adj('t1',3,-5)">-</button><span class="value" id="v-t1-3">0</span><button class="score-btn plus" onclick="adj('t1',3,5)">+</button><span class="max-points">/15</span></div></div>
+            <div class="score-item"><div class="label">Measure Length (within 5cm)</div><div class="input-group"><button class="score-btn minus" onclick="adj('t1',4,-5)">-</button><span class="value" id="v-t1-4">0</span><button class="score-btn plus" onclick="adj('t1',4,5)">+</button><span class="max-points">/10</span></div></div>
+            <div class="score-item"><div class="label">Estimate Height (within 5cm)</div><div class="input-group"><button class="score-btn minus" onclick="adj('t1',5,-1)">-</button><span class="value" id="v-t1-5">0</span><button class="score-btn plus" onclick="adj('t1',5,1)">+</button><span class="max-points">/5</span></div></div>
         </div>
-        <div class="sub-task"><div class="sub-task-title">1.3 飛越 (15分)</div>
-            <div class="score-item"><div class="label">錄像</div><div class="input-group"><input type="number" min="0" max="15" value="0" data-cat="t1" data-idx="6" onchange="calc()"><span class="max-points">/15</span></div></div>
+        <div class="sub-task"><div class="sub-task-title">1.3 Fly Transect (15pts)</div>
+            <div class="score-item"><div class="label">Video of Coral Garden</div><div class="input-group"><button class="score-btn minus" onclick="adj('t1',6,-5)">-</button><span class="value" id="v-t1-6">0</span><button class="score-btn plus" onclick="adj('t1',6,5)">+</button><span class="max-points">/15</span></div></div>
         </div>
     </div>
 
     <!-- Task 2 -->
     <div id="task2" class="tab-content">
-        <div class="task-header">Task 2: SmartAtlantic (135 分)</div>
-        <div class="sub-task"><div class="sub-task-title">2.1 入侵物種 (20分)</div>
-            <div class="score-item"><div class="label">識別數量</div><div class="input-group"><input type="number" min="0" max="15" value="0" data-cat="t2" data-idx="0" onchange="calc()"><span class="max-points">/15</span></div></div>
-            <div class="score-item"><div class="label">上傳數據</div><div class="input-group"><input type="number" min="0" max="5" value="0" data-cat="t2" data-idx="1" onchange="calc()"><span class="max-points">/5</span></div></div>
+        <div class="task-header">Task 2: SmartAtlantic (135 pts)</div>
+        <div class="sub-task"><div class="sub-task-title">2.1 Mitigate Invasive Species (20pts)</div>
+            <div class="score-item"><div class="label">Determine # of Green Crabs</div><div class="input-group"><button class="score-btn minus" onclick="adj('t2',0,-5)">-</button><span class="value" id="v-t2-0">0</span><button class="score-btn plus" onclick="adj('t2',0,5)">+</button><span class="max-points">/15</span></div></div>
+            <div class="score-item"><div class="label">Upload to Form</div><div class="input-group"><button class="score-btn minus" onclick="adj('t2',1,-1)">-</button><span class="value" id="v-t2-1">0</span><button class="score-btn plus" onclick="adj('t2',1,1)">+</button><span class="max-points">/5</span></div></div>
         </div>
-        <div class="sub-task"><div class="sub-task-title">2.2 冰山 (35分)</div>
-            <div class="score-item"><div class="label">測量周邊</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t2" data-idx="2" onchange="calc()"><span class="max-points">/10</span></div></div>
-            <div class="score-item"><div class="label">龍骨深度</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t2" data-idx="3" onchange="calc()"><span class="max-points">/10</span></div></div>
-            <div class="score-item"><div class="label">威脅級別</div><div class="input-group"><input type="number" min="0" max="15" value="0" data-cat="t2" data-idx="4" onchange="calc()"><span class="max-points">/15</span></div></div>
+        <div class="sub-task"><div class="sub-task-title">2.2 Iceberg Tracking (35pts)</div>
+            <div class="score-item"><div class="label">Survey 5 Points</div><div class="input-group"><button class="score-btn minus" onclick="adj('t2',2,-2)">-</button><span class="value" id="v-t2-2">0</span><button class="score-btn plus" onclick="adj('t2',2,2)">+</button><span class="max-points">/10</span></div></div>
+            <div class="score-item"><div class="label">Measure Keel Depth</div><div class="input-group"><button class="score-btn minus" onclick="adj('t2',3,-2)">-</button><span class="value" id="v-t2-3">0</span><button class="score-btn plus" onclick="adj('t2',3,2)">+</button><span class="max-points">/10</span></div></div>
+            <div class="score-item"><div class="label">Determine Threat Level</div><div class="input-group"><button class="score-btn minus" onclick="adj('t2',4,-5)">-</button><span class="value" id="v-t2-4">0</span><button class="score-btn plus" onclick="adj('t2',4,5)">+</button><span class="max-points">/15</span></div></div>
         </div>
-        <div class="sub-task"><div class="sub-task-title">2.3 捕魚設備 (20分)</div>
-            <div class="score-item"><div class="label">轉動把手</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t2" data-idx="5" onchange="calc()"><span class="max-points">/10</span></div></div>
-            <div class="score-item"><div class="label">回收龍蝦罐</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t2" data-idx="6" onchange="calc()"><span class="max-points">/10</span></div></div>
+        <div class="sub-task"><div class="sub-task-title">2.3 Whale Safe Fishing Gear (20pts)</div>
+            <div class="score-item"><div class="label">Turn Handle</div><div class="input-group"><button class="score-btn minus" onclick="adj('t2',5,-2)">-</button><span class="value" id="v-t2-5">0</span><button class="score-btn plus" onclick="adj('t2',5,2)">+</button><span class="max-points">/10</span></div></div>
+            <div class="score-item"><div class="label">Recover Lobster Pot</div><div class="input-group"><button class="score-btn minus" onclick="adj('t2',6,-2)">-</button><span class="value" id="v-t2-6">0</span><button class="score-btn plus" onclick="adj('t2',6,2)">+</button><span class="max-points">/10</span></div></div>
         </div>
-        <div class="sub-task"><div class="sub-task-title">2.4 浮標錨 (15分)</div>
-            <div class="score-item"><div class="label">連接線</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t2" data-idx="7" onchange="calc()"><span class="max-points">/10</span></div></div>
-            <div class="score-item"><div class="label">回收</div><div class="input-group"><input type="number" min="0" max="5" value="0" data-cat="t2" data-idx="8" onchange="calc()"><span class="max-points">/5</span></div></div>
+        <div class="sub-task"><div class="sub-task-title">2.4 Recover Buoy Anchor (15pts)</div>
+            <div class="score-item"><div class="label">Attach Recovery Line</div><div class="input-group"><button class="score-btn minus" onclick="adj('t2',7,-2)">-</button><span class="value" id="v-t2-7">0</span><button class="score-btn plus" onclick="adj('t2',7,2)">+</button><span class="max-points">/10</span></div></div>
+            <div class="score-item"><div class="label">Return to Surface</div><div class="input-group"><button class="score-btn minus" onclick="adj('t2',8,-1)">-</button><span class="value" id="v-t2-8">0</span><button class="score-btn plus" onclick="adj('t2',8,1)">+</button><span class="max-points">/5</span></div></div>
         </div>
-        <div class="sub-task"><div class="sub-task-title">2.5 觀測站 (45分)</div>
-            <div class="score-item"><div class="label">回收感測器</div><div class="input-group"><input type="number" min="0" max="15" value="0" data-cat="t2" data-idx="9" onchange="calc()"><span class="max-points">/15</span></div></div>
-            <div class="score-item"><div class="label">分析數據</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t2" data-idx="10" onchange="calc()"><span class="max-points">/10</span></div></div>
-            <div class="score-item"><div class="label">安裝感測器</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t2" data-idx="11" onchange="calc()"><span class="max-points">/10</span></div></div>
-            <div class="score-item"><div class="label">連接</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t2" data-idx="12" onchange="calc()"><span class="max-points">/10</span></div></div>
+        <div class="sub-task"><div class="sub-task-title">2.5 Holyrood Observatory (45pts)</div>
+            <div class="score-item"><div class="label">Recover Old Sensor</div><div class="input-group"><button class="score-btn minus" onclick="adj('t2',9,-5)">-</button><span class="value" id="v-t2-9">0</span><button class="score-btn plus" onclick="adj('t2',9,5)">+</button><span class="max-points">/15</span></div></div>
+            <div class="score-item"><div class="label">Analyze Data</div><div class="input-group"><button class="score-btn minus" onclick="adj('t2',10,-2)">-</button><span class="value" id="v-t2-10">0</span><button class="score-btn plus" onclick="adj('t2',10,2)">+</button><span class="max-points">/10</span></div></div>
+            <div class="score-item"><div class="label">Install New Sensor</div><div class="input-group"><button class="score-btn minus" onclick="adj('t2',11,-2)">-</button><span class="value" id="v-t2-11">0</span><button class="score-btn plus" onclick="adj('t2',11,2)">+</button><span class="max-points">/10</span></div></div>
+            <div class="score-item"><div class="label">Connect Sensor</div><div class="input-group"><button class="score-btn minus" onclick="adj('t2',12,-2)">-</button><span class="value" id="v-t2-12">0</span><button class="score-btn plus" onclick="adj('t2',12,2)">+</button><span class="max-points">/10</span></div></div>
         </div>
     </div>
 
     <!-- Task 3 -->
     <div id="task3" class="tab-content">
-        <div class="task-header">Task 3: Wind Platform (60 分)</div>
-        <div class="sub-task"><div class="sub-task-title">3.1 微樁 (30分)</div>
-            <div class="score-item"><div class="label">氣泡幕</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t3" data-idx="0" onchange="calc()"><span class="max-points">/10</span></div></div>
-            <div class="score-item"><div class="label">引導</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t3" data-idx="1" onchange="calc()"><span class="max-points">/10</span></div></div>
-            <div class="score-item"><div class="label">釋放</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t3" data-idx="2" onchange="calc()"><span class="max-points">/10</span></div></div>
+        <div class="task-header">Task 3: Wind Platform (60 pts)</div>
+        <div class="sub-task"><div class="sub-task-title">3.1 Micropile Installation (30pts)</div>
+            <div class="score-item"><div class="label">Place Bubble Curtain</div><div class="input-group"><button class="score-btn minus" onclick="adj('t3',0,-2)">-</button><span class="value" id="v-t3-0">0</span><button class="score-btn plus" onclick="adj('t3',0,2)">+</button><span class="max-points">/10</span></div></div>
+            <div class="score-item"><div class="label">Guide Micropile</div><div class="input-group"><button class="score-btn minus" onclick="adj('t3',1,-2)">-</button><span class="value" id="v-t3-1">0</span><button class="score-btn plus" onclick="adj('t3',1,2)">+</button><span class="max-points">/10</span></div></div>
+            <div class="score-item"><div class="label">Pull Pin</div><div class="input-group"><button class="score-btn minus" onclick="adj('t3',2,-2)">-</button><span class="value" id="v-t3-2">0</span><button class="score-btn plus" onclick="adj('t3',2,2)">+</button><span class="max-points">/10</span></div></div>
         </div>
-        <div class="sub-task"><div class="sub-task-title">3.2 供電 (30分)</div>
-            <div class="score-item"><div class="label">回收connector</div><div class="input-group"><input type="number" min="0" max="5" value="0" data-cat="t3" data-idx="3" onchange="calc()"><span class="max-points">/5</span></div></div>
-            <div class="score-item"><div class="label">鋪設電纜</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t3" data-idx="4" onchange="calc()"><span class="max-points">/10</span></div></div>
-            <div class="score-item"><div class="label">移除蓋</div><div class="input-group"><input type="number" min="0" max="5" value="0" data-cat="t3" data-idx="5" onchange="calc()"><span class="max-points">/5</span></div></div>
-            <div class="score-item"><div class="label">安裝</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t3" data-idx="6" onchange="calc()"><span class="max-points">/10</span></div></div>
+        <div class="sub-task"><div class="sub-task-title">3.2 Power Platform (30pts)</div>
+            <div class="score-item"><div class="label">Retrieve Connector</div><div class="input-group"><button class="score-btn minus" onclick="adj('t3',3,-1)">-</button><span class="value" id="v-t3-3">0</span><button class="score-btn plus" onclick="adj('t3',3,1)">+</button><span class="max-points">/5</span></div></div>
+            <div class="score-item"><div class="label">Lay Cable Through Waypoint</div><div class="input-group"><button class="score-btn minus" onclick="adj('t3',4,-2)">-</button><span class="value" id="v-t3-4">0</span><button class="score-btn plus" onclick="adj('t3',4,2)">+</button><span class="max-points">/10</span></div></div>
+            <div class="score-item"><div class="label">Remove Cover</div><div class="input-group"><button class="score-btn minus" onclick="adj('t3',5,-1)">-</button><span class="value" id="v-t3-5">0</span><button class="score-btn plus" onclick="adj('t3',5,1)">+</button><span class="max-points">/5</span></div></div>
+            <div class="score-item"><div class="label">Install Connector</div><div class="input-group"><button class="score-btn minus" onclick="adj('t3',6,-2)">-</button><span class="value" id="v-t3-6">0</span><button class="score-btn plus" onclick="adj('t3',6,2)">+</button><span class="max-points">/10</span></div></div>
         </div>
     </div>
 
     <!-- Task 4 -->
     <div id="task4" class="tab-content">
-        <div class="task-header">Task 4: Floats Under Ice (70 分)</div>
-        <div class="sub-task"><div class="sub-task-title">設計 (10分)</div>
-            <div class="score-item"><div class="label">製作浮筒</div><div class="input-group"><input type="number" min="0" max="5" value="0" data-cat="t4" data-idx="0" onchange="calc()"><span class="max-points">/5</span></div></div>
-            <div class="score-item"><div class="label">通訊</div><div class="input-group"><input type="number" min="0" max="5" value="0" data-cat="t4" data-idx="1" onchange="calc()"><span class="max-points">/5</span></div></div>
+        <div class="task-header">Task 4: Floats Under Ice (70 pts)</div>
+        <div class="sub-task"><div class="sub-task-title">Design (10pts)</div>
+            <div class="score-item"><div class="label">Design & Construct Float</div><div class="input-group"><button class="score-btn minus" onclick="adj('t4',0,-1)">-</button><span class="value" id="v-t4-0">0</span><button class="score-btn plus" onclick="adj('t4',0,1)">+</button><span class="max-points">/5</span></div></div>
+            <div class="score-item"><div class="label">Communicate Before Descent</div><div class="input-group"><button class="score-btn minus" onclick="adj('t4',1,-1)">-</button><span class="value" id="v-t4-1">0</span><button class="score-btn plus" onclick="adj('t4',1,1)">+</button><span class="max-points">/5</span></div></div>
         </div>
-        <div class="sub-task"><div class="sub-task-title">第一次剖面 (25分)</div>
-            <div class="score-item"><div class="label">完成</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t4" data-idx="2" onchange="calc()"><span class="max-points">/10</span></div></div>
-            <div class="score-item"><div class="label">2.5m/30s</div><div class="input-group"><input type="number" min="0" max="5" value="0" data-cat="t4" data-idx="3" onchange="calc()"><span class="max-points">/5</span></div></div>
-            <div class="score-item"><div class="label">40cm/30s</div><div class="input-group"><input type="number" min="0" max="5" value="0" data-cat="t4" data-idx="4" onchange="calc()"><span class="max-points">/5</span></div></div>
-            <div class="score-item"><div class="label">撞冰面(扣分)</div><div class="input-group"><input type="number" min="-5" max="0" value="0" data-cat="t4" data-idx="5" onchange="calc()"><span class="max-points">/-5</span></div></div>
+        <div class="sub-task"><div class="sub-task-title">Profile #1 (25pts)</div>
+            <div class="score-item"><div class="label">Complete using Buoyancy Engine</div><div class="input-group"><button class="score-btn minus" onclick="adj('t4',2,-2)">-</button><span class="value" id="v-t4-2">0</span><button class="score-btn plus" onclick="adj('t4',2,2)">+</button><span class="max-points">/10</span></div></div>
+            <div class="score-item"><div class="label">Maintain 2.5m for 30s</div><div class="input-group"><button class="score-btn minus" onclick="adj('t4',3,-1)">-</button><span class="value" id="v-t4-3">0</span><button class="score-btn plus" onclick="adj('t4',3,1)">+</button><span class="max-points">/5</span></div></div>
+            <div class="score-item"><div class="label">Maintain 40cm for 30s</div><div class="input-group"><button class="score-btn minus" onclick="adj('t4',4,-1)">-</button><span class="value" id="v-t4-4">0</span><button class="score-btn plus" onclick="adj('t4',4,1)">+</button><span class="max-points">/5</span></div></div>
+            <div class="score-item"><div class="label">Ice Penalty (-5 if hit)</div><div class="input-group"><button class="score-btn minus" onclick="adj('t4',5,-1)">-</button><span class="value" id="v-t4-5">0</span><button class="score-btn plus" onclick="adj('t4',5,1)">+</button><span class="max-points">/-5</span></div></div>
         </div>
-        <div class="sub-task"><div class="sub-task-title">第二次剖面 (25分)</div>
-            <div class="score-item"><div class="label">完成</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t4" data-idx="6" onchange="calc()"><span class="max-points">/10</span></div></div>
-            <div class="score-item"><div class="label">2.5m/30s</div><div class="input-group"><input type="number" min="0" max="5" value="0" data-cat="t4" data-idx="7" onchange="calc()"><span class="max-points">/5</span></div></div>
-            <div class="score-item"><div class="label">40cm/30s</div><div class="input-group"><input type="number" min="0" max="5" value="0" data-cat="t4" data-idx="8" onchange="calc()"><span class="max-points">/5</span></div></div>
-            <div class="score-item"><div class="label">撞冰面(扣分)</div><div class="input-group"><input type="number" min="-5" max="0" value="0" data-cat="t4" data-idx="9" onchange="calc()"><span class="max-points">/-5</span></div></div>
+        <div class="sub-task"><div class="sub-task-title">Profile #2 (25pts)</div>
+            <div class="score-item"><div class="label">Complete using Buoyancy Engine</div><div class="input-group"><button class="score-btn minus" onclick="adj('t4',6,-2)">-</button><span class="value" id="v-t4-6">0</span><button class="score-btn plus" onclick="adj('t4',6,2)">+</button><span class="max-points">>/10</span></div></div>
+            <div class="score-item"><div class="label">Maintain 2.5m for 30s</div><div class="input-group"><button class="score-btn minus" onclick="adj('t4',7,-1)">-</button><span class="value" id="v-t4-7">0</span><button class="score-btn plus" onclick="adj('t4',7,1)">+</button><span class="max-points">/5</span></div></div>
+            <div class="score-item"><div class="label">Maintain 40cm for 30s</div><div class="input-group"><button class="score-btn minus" onclick="adj('t4',8,-1)">-</button><span class="value" id="v-t4-8">0</span><button class="score-btn plus" onclick="adj('t4',8,1)">+</button><span class="max-points">/5</span></div></div>
+            <div class="score-item"><div class="label">Ice Penalty (-5 if hit)</div><div class="input-group"><button class="score-btn minus" onclick="adj('t4',9,-1)">-</button><span class="value" id="v-t4-9">0</span><button class="score-btn plus" onclick="adj('t4',9,1)">+</button><span class="max-points">/-5</span></div></div>
         </div>
-        <div class="sub-task"><div class="sub-task-title">恢復後 (10分)</div>
-            <div class="score-item"><div class="label">通訊數據</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t4" data-idx="10" onchange="calc()"><span class="max-points">/10</span></div></div>
+        <div class="sub-task"><div class="sub-task-title">After Recovery (10pts)</div>
+            <div class="score-item"><div class="label">Communicate Data</div><div class="input-group"><button class="score-btn minus" onclick="adj('t4',10,-2)">-</button><span class="value" id="v-t4-10">0</span><button class="score-btn plus" onclick="adj('t4',10,2)">+</button><span class="max-points">/10</span></div></div>
         </div>
     </div>
 
     <div class="actions">
-        <button class="action-btn primary" onclick="exportData()">💾 匯出</button>
-        <button class="action-btn secondary" onclick="importData()">📂 匯入</button>
-        <button class="action-btn secondary" onclick="printScore()">🖨️ 列印</button>
-        <button class="action-btn danger" onclick="resetData()">🗑️ 重置</button>
+        <button class="action-btn primary" onclick="exportData()">💾 Export</button>
+        <button class="action-btn secondary" onclick="importData()">📂 Import</button>
+        <button class="action-btn secondary" onclick="printScore()">🖨️ Print</button>
+        <button class="action-btn danger" onclick="resetData()">🗑️ Reset</button>
     </div>
 
     <input type="file" id="fileInput" style="display:none" accept=".json" onchange="loadFile(event)">
 
     <script>
+        const values = { org: Array(10).fill(0), t1: Array(7).fill(0), t2: Array(13).fill(0), t3: Array(7).fill(0), t4: Array(11).fill(0) };
         const scores = { safety: 0, org: 0, weight: 0, t1: 0, t2: 0, t3: 0, t4: 0 };
-        const maxScores = { safety: 5, org: 10, weight: 10, t1: 85, t2: 135, t3: 60, t4: 70 };
 
         function showTab(id) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -332,36 +346,28 @@
             event.target.classList.add('active');
         }
 
+        function adj(cat, idx, delta) {
+            const el = document.getElementById('v-' + cat + '-' + idx);
+            let v = parseInt(el.textContent) + delta;
+            if (v < 0) v = 0;
+            el.textContent = v;
+            values[cat][idx] = v;
+            calc();
+        }
+
         function calc() {
-            // Safety
             scores.safety = (document.getElementById('safetyCard').checked ? 3 : 0) + (document.getElementById('jsea').checked ? 2 : 0);
             document.getElementById('score-safety').textContent = scores.safety + '/5';
-
-            // Org
-            scores.org = 0;
-            document.querySelectorAll('[data-cat="org"]').forEach(i => scores.org += parseInt(i.value) || 0);
+            scores.org = values.org.reduce((a,b) => a+b, 0);
             document.getElementById('score-org').textContent = scores.org + '/10';
-
-            // Task 1
-            scores.t1 = 0;
-            document.querySelectorAll('[data-cat="t1"]').forEach(i => scores.t1 += parseInt(i.value) || 0);
+            scores.t1 = values.t1.reduce((a,b) => a+b, 0);
             document.getElementById('score-task1').textContent = scores.t1 + '/85';
-
-            // Task 2
-            scores.t2 = 0;
-            document.querySelectorAll('[data-cat="t2"]').forEach(i => scores.t2 += parseInt(i.value) || 0);
+            scores.t2 = values.t2.reduce((a,b) => a+b, 0);
             document.getElementById('score-task2').textContent = scores.t2 + '/135';
-
-            // Task 3
-            scores.t3 = 0;
-            document.querySelectorAll('[data-cat="t3"]').forEach(i => scores.t3 += parseInt(i.value) || 0);
+            scores.t3 = values.t3.reduce((a,b) => a+b, 0);
             document.getElementById('score-task3').textContent = scores.t3 + '/60';
-
-            // Task 4
-            scores.t4 = 0;
-            document.querySelectorAll('[data-cat="t4"]').forEach(i => scores.t4 += parseInt(i.value) || 0);
+            scores.t4 = values.t4.reduce((a,b) => a+b, 0);
             document.getElementById('score-task4').textContent = scores.t4 + '/70';
-
             const total = scores.safety + scores.org + scores.weight + scores.t1 + scores.t2 + scores.t3 + scores.t4;
             document.getElementById('totalScore').textContent = total;
             saveData();
@@ -371,7 +377,7 @@
             document.querySelectorAll('.weight-option').forEach(o => o.classList.remove('selected'));
             el.classList.add('selected');
             scores.weight = points === -999 ? 0 : points;
-            if (points === -999) { alert('體重超過35kg不能參賽！'); }
+            if (points === -999) { alert('Weight > 35kg - Cannot compete!'); }
             document.getElementById('score-weight').textContent = (points === -999 ? 0 : points) + '/10';
             calc();
         }
@@ -382,10 +388,8 @@
                 ceoName: document.getElementById('ceoName').value,
                 judgeName: document.getElementById('judgeName').value,
                 scores: scores,
-                inputs: {}
+                values: values
             };
-            document.querySelectorAll('input[type="number"]').forEach((i, idx) => data.inputs[idx] = i.value);
-            document.querySelectorAll('input[type="checkbox"]').forEach((i, idx) => data.inputs['cb' + idx] = i.checked);
             localStorage.setItem('mateRovScoreboard', JSON.stringify(data));
         }
 
@@ -400,13 +404,14 @@
                     scores.weight = data.scores.weight || 0;
                     document.getElementById('score-weight').textContent = scores.weight + '/10';
                 }
-                if (data.inputs) {
-                    document.querySelectorAll('input[type="number"]').forEach((i, idx) => {
-                        if (data.inputs[idx] !== undefined) i.value = data.inputs[idx];
-                    });
-                    document.querySelectorAll('input[type="checkbox"]').forEach((i, idx) => {
-                        if (data.inputs['cb' + idx] !== undefined) i.checked = data.inputs['cb' + idx];
-                    });
+                if (data.values) {
+                    for (const cat in data.values) {
+                        values[cat] = data.values[cat];
+                        values[cat].forEach((v, i) => {
+                            const el = document.getElementById('v-' + cat + '-' + i);
+                            if (el) el.textContent = v;
+                        });
+                    }
                 }
                 calc();
             }
@@ -418,10 +423,8 @@
                 ceoName: document.getElementById('ceoName').value,
                 judgeName: document.getElementById('judgeName').value,
                 scores: scores,
-                inputs: {}
+                values: values
             };
-            document.querySelectorAll('input[type="number"]').forEach((i, idx) => data.inputs[idx] = i.value);
-            document.querySelectorAll('input[type="checkbox"]').forEach((i, idx) => data.inputs['cb' + idx] = i.checked);
             const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -447,17 +450,18 @@
                         scores.weight = data.scores.weight || 0;
                         document.getElementById('score-weight').textContent = scores.weight + '/10';
                     }
-                    if (data.inputs) {
-                        document.querySelectorAll('input[type="number"]').forEach((i, idx) => {
-                            if (data.inputs[idx] !== undefined) i.value = data.inputs[idx];
-                        });
-                        document.querySelectorAll('input[type="checkbox"]').forEach((i, idx) => {
-                            if (data.inputs['cb' + idx] !== undefined) i.checked = data.inputs['cb' + idx];
-                        });
+                    if (data.values) {
+                        for (const cat in data.values) {
+                            values[cat] = data.values[cat];
+                            values[cat].forEach((v, i) => {
+                                const el = document.getElementById('v-' + cat + '-' + i);
+                                if (el) el.textContent = v;
+                            });
+                        }
                     }
                     calc();
-                    alert('匯入成功！');
-                } catch(err) { alert('匯入失敗：' + err); }
+                    alert('Import successful!');
+                } catch(err) { alert('Import failed: ' + err); }
             };
             reader.readAsText(file);
             event.target.value = '';
@@ -466,12 +470,11 @@
         function printScore() { window.print(); }
 
         function resetData() {
-            if (!confirm('確定要重置所有數據嗎？')) return;
+            if (!confirm('Reset all data?')) return;
             localStorage.removeItem('mateRovScoreboard');
             location.reload();
         }
 
-        // Init
         loadData();
     </script>
 </body>
