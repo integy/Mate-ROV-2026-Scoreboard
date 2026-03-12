@@ -23,7 +23,7 @@ const doPost = (e) => {
       sheet = doc.insertSheet(SHEET_NAME);
       // Create headers
       const headers = [
-        'Timestamp', 'Team Name', 'CEO Name', 'Judge Name', 
+        'Timestamp', 'Trial Run', 'Team Name', 'CEO Name', 'Judge Name', 
         'Safety', 'Org', 'Weight', 'Task 1', 'Task 2', 'Task 3', 'Task 4', 
         'Total Score', 'Class'
       ];
@@ -36,6 +36,7 @@ const doPost = (e) => {
     const timestamp = new Date();
     const row = [
       timestamp.toISOString(),
+      data.trialRun || 1,
       data.teamName || '',
       data.ceoName || '',
       data.judgeName || '',
