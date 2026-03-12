@@ -205,7 +205,6 @@
         <input type="text" id="ceoName" placeholder="CEO Name" onchange="saveData()">
         <input type="number" id="trialRun" min="1" max="5" value="1" onchange="saveData()">
         <input type="text" id="judgeName" placeholder="Judge Name" onchange="saveData()">
-        <input type="text" id="sheetUrl" placeholder="Google Sheets URL (optional)" onchange="saveData()" style="grid-column: 1 / -1;">
     </div>
 
     <div class="score-display">
@@ -363,7 +362,6 @@
 
     <div class="actions">
         <button class="action-btn primary" onclick="exportData()">💾 Export</button>
-        <button class="action-btn primary" style="background: #4285f4;" onclick="saveToGoogleSheets()">☁️ Save to Sheet</button>
         <button class="action-btn secondary" onclick="importData()">📂 Import</button>
         <button class="action-btn secondary" onclick="printScore()">🖨️ Print</button>
         <button class="action-btn danger" onclick="resetData()">🗑️ Reset</button>
@@ -424,7 +422,6 @@
                 ceoName: document.getElementById('ceoName').value,
                 judgeName: document.getElementById('judgeName').value,
                 trialRun: document.getElementById('trialRun').value,
-                sheetUrl: document.getElementById('sheetUrl').value,
                 scores: scores,
                 values: values
             };
@@ -438,7 +435,6 @@
                 document.getElementById('teamName').value = data.teamName || '';
                 document.getElementById('ceoName').value = data.ceoName || '';
                 document.getElementById('judgeName').value = data.judgeName || '';
-                document.getElementById('sheetUrl').value = data.sheetUrl || '';
                 document.getElementById('trialRun').value = data.trialRun || 1;
                 if (data.scores) {
                     scores.weight = data.scores.weight || 0;
@@ -510,51 +506,6 @@
 
         function printScore() { window.print(); }
 
-        function saveToGoogleSheets() {
-            const sheetUrl = document.getElementById('sheetUrl').value.trim();
-            if (!sheetUrl) {
-                alert('Please enter Google Sheets Web App URL first!');
-                return;
-            }
-            
-            let apiUrl = sheetUrl.replace(/\/edit$/, '');
-            if (!apiUrl.startsWith('http')) {
-                apiUrl = 'https://' + apiUrl;
-            }
-            
-            const data = {
-                teamName: document.getElementById('teamName').value,
-                ceoName: document.getElementById('ceoName').value,
-                judgeName: document.getElementById('judgeName').value,
-                trialRun: document.getElementById('trialRun').value,
-                rovClass: document.getElementById('rovClass').value,
-                scores: scores,
-                totalScore: scores.safety + scores.org + scores.weight + scores.t1 + scores.t2 + scores.t3 + scores.t4
-            };
-            
-            // Use redirect: "follow" instead of no-cors
-            fetch(apiUrl, {
-                method: 'POST',
-                redirect: 'follow',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(data)
-            })
-            .then(response => {
-                if (response.ok || response.status === 0) {
-                    alert('Score sent to Google Sheets!');
-                } else {
-                    alert('Error: ' + response.status);
-                }
-            })
-            .catch(err => {
-                // If it's a CORS error but request was sent, assume success
-                if (err.message.includes('Failed to fetch')) {
-                    alert('Score sent to Google Sheets! (Check your sheet)');
-                } else {
-                    alert('Failed to save: ' + err.message);
-                }
-            });
-        }
 
         function resetData() {
             if (!confirm('Reset all data?')) return;
