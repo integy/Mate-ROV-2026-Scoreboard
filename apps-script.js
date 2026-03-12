@@ -1,13 +1,11 @@
-// MATE ROV Competition Scoreboard - Google Sheets Backend (Simplified)
-const SHEET_NAME = "Scores";
-
+// MATE ROV Competition Scoreboard - Google Sheets Backend
 const doPost = (e) => {
   try {
     const doc = SpreadsheetApp.getActiveSpreadsheet();
-    let sheet = doc.getSheetByName(SHEET_NAME);
+    const sheet = doc.getActiveSheet();
     
-    if (!sheet) {
-      sheet = doc.insertSheet(SHEET_NAME);
+    // Add headers if row 1 is empty
+    if (sheet.getLastRow() === 0) {
       const headers = ['Timestamp', 'Trial Run', 'Team Name', 'CEO Name', 'Judge Name', 'Safety', 'Org', 'Weight', 'Task 1', 'Task 2', 'Task 3', 'Task 4', 'Total Score', 'Class'];
       sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
     }
