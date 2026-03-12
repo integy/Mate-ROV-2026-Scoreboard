@@ -6,7 +6,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MATE ROV 2026 Scoreboard</title>
+    <title>MATE ROV 2026 Scoreboard v2</title>
     <style>
         :root {
             --bg-dark: #0a1628;
@@ -437,6 +437,8 @@
                 document.getElementById('ceoName').value = data.ceoName || '';
                 document.getElementById('judgeName').value = data.judgeName || '';
                 document.getElementById('sheetUrl').value = data.sheetUrl || '';
+                if (data.scores) {
+                    scores.weight = data.scores.weight || 0;
                     document.getElementById('score-weight').textContent = scores.weight + '/10';
                 }
                 if (data.values) {
