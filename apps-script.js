@@ -55,12 +55,14 @@ const doPost = (e) => {
     
     return ContentService
       .createTextOutput(JSON.stringify({ 'result': 'success', 'row': row }))
-      .setMimeType(ContentService.MimeType.JSON);
+      .setMimeType(ContentService.MimeType.JSON)
+      .setHeaders({ 'Access-Control-Allow-Origin': '*' });
     
   } catch (e) {
     return ContentService
       .createTextOutput(JSON.stringify({ 'result': 'error', 'error': e.message }))
-      .setMimeType(ContentService.MimeType.JSON);
+      .setMimeType(ContentService.MimeType.JSON)
+      .setHeaders({ 'Access-Control-Allow-Origin': '*' });
   } finally {
     lock.releaseLock();
   }
@@ -69,5 +71,6 @@ const doPost = (e) => {
 const doGet = (e) => {
   return ContentService
     .createTextOutput(JSON.stringify({ 'status': 'ok', 'message': 'MATE ROV Scoreboard API is running' }))
-    .setMimeType(ContentService.MimeType.JSON);
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeaders({ 'Access-Control-Allow-Origin': '*' });
 }

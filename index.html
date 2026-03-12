@@ -517,10 +517,7 @@
                 return;
             }
             
-            // Extract the Web App URL (remove /edit suffix if present)
             let apiUrl = sheetUrl.replace(/\/edit$/, '');
-            
-            // If it's a full URL, use it directly
             if (!apiUrl.startsWith('http')) {
                 apiUrl = 'https://' + apiUrl;
             }
@@ -535,18 +532,15 @@
                 totalScore: scores.safety + scores.org + scores.weight + scores.t1 + scores.t2 + scores.t3 + scores.t4
             };
             
+            // Use no-cors mode to bypass CORS - request will succeed but no response
             fetch(apiUrl, {
                 method: 'POST',
+                mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             })
-            .then(res => res.json())
-            .then(result => {
-                if (result.result === 'success') {
-                    alert('Score saved to Google Sheets!');
-                } else {
-                    alert('Error: ' + result.error);
-                }
+            .then(() => {
+                alert('Score sent to Google Sheets! (Check your sheet)');
             })
             .catch(err => {
                 alert('Failed to save: ' + err.message);
