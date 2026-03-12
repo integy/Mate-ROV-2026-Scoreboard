@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MATE ROV 2026 Explorer Class Scoreboard</title>
+    <title>MATE ROV 2026 Scoreboard</title>
     <style>
         :root {
             --bg-dark: #0a1628;
@@ -38,6 +38,27 @@
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 12px;
             margin-bottom: 20px;
+        }
+        .class-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: var(--bg-card);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+        .class-selector label { font-size: 1rem; color: var(--text-dim); }
+        .class-selector select {
+            padding: 10px 15px;
+            font-size: 1rem;
+            background: var(--bg-dark);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
         }
         .team-info input {
             background: var(--bg-card);
@@ -165,6 +186,13 @@
     <div class="header">
         <h1>🤿 MATE ROV 2026 Explorer Class</h1>
         <div class="subtitle">Pushing Performance: Science, Technology, Discovery In Harsh Environments</div>
+        <div class="class-selector">
+            <label>Class:</label>
+            <select id="rovClass" onchange="changeClass()">
+                <option value="explorer">Explorer Class</option>
+                <option value="ranger">Ranger Class</option>
+            </select>
+        </div>
     </div>
 
     <div class="team-info">
@@ -473,6 +501,29 @@
             if (!confirm('Reset all data?')) return;
             localStorage.removeItem('mateRovScoreboard');
             location.reload();
+        }
+
+        function changeClass() {
+            const cls = document.getElementById('rovClass').value;
+            const opts = document.querySelectorAll('.weight-option');
+            if (cls === 'ranger') {
+                opts[0].innerHTML = '<div class="weight-range">&lt;15kg</div><div class="weight-points">+10</div>';
+                opts[1].innerHTML = '<div class="weight-range">15-20kg</div><div class="weight-points">+5</div>';
+                opts[2].innerHTML = '<div class="weight-range">20-25kg</div><div class="weight-points">+0</div>';
+                opts[0].setAttribute('onclick', 'selectWeight(10, this)');
+                opts[1].setAttribute('onclick', 'selectWeight(5, this)');
+                opts[2].setAttribute('onclick', 'selectWeight(0, this)');
+            } else {
+                opts[0].innerHTML = '<div class="weight-range">&lt;18kg</div><div class="weight-points">+10</div>';
+                opts[1].innerHTML = '<div class="weight-range">18-25kg</div><div class="weight-points">+5</div>';
+                opts[2].innerHTML = '<div class="weight-range">25-35kg</div><div class="weight-points">+0</div>';
+                opts[0].setAttribute('onclick', 'selectWeight(10, this)');
+                opts[1].setAttribute('onclick', 'selectWeight(5, this)');
+                opts[2].setAttribute('onclick', 'selectWeight(0, this)');
+            }
+            scores.weight = 0;
+            document.getElementById('score-weight').textContent = '0/10';
+            calc();
         }
 
         loadData();
