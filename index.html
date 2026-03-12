@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MATE ROV 2026 Explorer Class 計分板</title>
+    <style>
+        :root {
+            --bg-dark: #0a1628;
+            --bg-card: #16213e;
+            --accent: #00d4ff;
+            --red: #e63946;
+            --green: #2a9d8f;
+            --text: #f1faee;
+            --text-dim: #a8b2d1;
+            --border: #2d3a5a;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 15px;
+            font-family: 'Segoe UI', Tahoma, Geneva, sans-serif;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: var(--bg-card);
+            border-radius: 15px;
+            border: 1px solid var(--border);
+        }
+        .header h1 { font-size: 1.6rem; color: var(--accent); margin-bottom: 5px; }
+        .header .subtitle { font-size: 0.85rem; color: var(--text-dim); }
+        .team-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .team-info input {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+        .score-display {
+            background: var(--bg-card);
+            border: 2px solid var(--accent);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .score-display .total-label { font-size: 1rem; color: var(--text-dim); }
+        .score-display .total-score { font-size: 3rem; font-weight: bold; color: var(--accent); }
+        .score-display .max-score { font-size: 1rem; color: var(--text-dim); }
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            background: var(--bg-card);
+            padding: 8px;
+            border-radius: 12px;
+        }
+        .tab-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            flex: 1;
+            min-width: 80px;
+            transition: all 0.3s;
+        }
+        .tab-btn.active {
+            background: var(--accent);
+            color: var(--bg-dark);
+            font-weight: bold;
+        }
+        .tab-btn .tab-score { display: block; font-size: 0.7rem; margin-top: 2px; opacity: 0.8; }
+        .tab-content { display: none; background: var(--bg-card); border-radius: 15px; padding: 20px; border: 1px solid var(--border); }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .section-title { font-size: 1.1rem; color: var(--accent); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+        .task-header { font-size: 1.1rem; font-weight: bold; color: var(--accent); margin-bottom: 15px; }
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 1px solid var(--border);
+        }
+        .score-item .label { flex: 1; font-size: 0.85rem; }
+        .score-item .input-group { display: flex; align-items: center; gap: 8px; }
+        .score-item input[type="number"] {
+            width: 55px;
+            padding: 6px 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            color: var(--text);
+            text-align: center;
+        }
+        .score-item .max-points { font-size: 0.75rem; color: var(--text-dim); min-width: 30px; }
+        .weight-selector { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; }
+        .weight-option {
+            flex: 1;
+            min-width: 100px;
+            padding: 12px;
+            background: var(--bg-dark);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .weight-option.selected { border-color: var(--accent); background: rgba(0, 212, 255, 0.1); }
+        .weight-option .weight-range { font-size: 0.9rem; font-weight: bold; }
+        .weight-option .weight-points { font-size: 0.8rem; color: var(--accent); }
+        .sub-task { margin-left: 12px; margin-bottom: 12px; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px; border-left: 3px solid var(--accent); }
+        .sub-task-title { font-size: 0.9rem; color: var(--accent); margin-bottom: 10px; }
+        .checkbox-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg-dark); border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); }
+        .checkbox-item input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--green); }
+        .checkbox-item .checkbox-label { flex: 1; font-size: 0.9rem; }
+        .actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+        .action-btn { flex: 1; min-width: 120px; padding: 12px; border: none; border-radius: 8px; font-size: 0.9rem; cursor: pointer; transition: all 0.3s; }
+        .action-btn.primary { background: var(--accent); color: var(--bg-dark); font-weight: bold; }
+        .action-btn.secondary { background: var(--bg-card); color: var(--text); border: 1px solid var(--border); }
+        .action-btn.danger { background: var(--red); color: white; }
+        .action-btn:hover { transform: translateY(-2px); }
+        @media print { body { background: white; color: black; } .actions, .tabs { display: none; } .tab-content { display: block !important; background: white; border: 1px solid #ccc; } .score-item { background: #f5f5f5; } }
+        @media (max-width: 600px) {
+            .header h1 { font-size: 1.3rem; }
+            .score-display .total-score { font-size: 2.2rem; }
+            .score-item { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .score-item .input-group { width: 100%; justify-content: space-between; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤿 MATE ROV 2026 Explorer Class</h1>
+        <div class="subtitle">Pushing Performance: Science, Technology, Discovery In Harsh Environments</div>
+    </div>
+
+    <div class="team-info">
+        <input type="text" id="teamName" placeholder="公司/團隊名稱" onchange="saveData()">
+        <input type="text" id="ceoName" placeholder="CEO 姓名" onchange="saveData()">
+        <input type="text" id="judgeName" placeholder="裁判姓名" onchange="saveData()">
+    </div>
+
+    <div class="score-display">
+        <div class="total-label">總分</div>
+        <div class="total-score" id="totalScore">0</div>
+        <div class="max-score">/ 375 分</div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('safety')">🛡️ <span class="tab-score" id="score-safety">0/5</span></button>
+        <button class="tab-btn" onclick="showTab('org')">📊 <span class="tab-score" id="score-org">0/10</span></button>
+        <button class="tab-btn" onclick="showTab('weight')">⚖️ <span class="tab-score" id="score-weight">0/10</span></button>
+        <button class="tab-btn" onclick="showTab('task1')">T1 <span class="tab-score" id="score-task1">0/85</span></button>
+        <button class="tab-btn" onclick="showTab('task2')">T2 <span class="tab-score" id="score-task2">0/135</span></button>
+        <button class="tab-btn" onclick="showTab('task3')">T3 <span class="tab-score" id="score-task3">0/60</span></button>
+        <button class="tab-btn" onclick="showTab('task4')">T4 <span class="tab-score" id="score-task4">0/70</span></button>
+    </div>
+
+    <!-- Safety -->
+    <div id="safety" class="tab-content active">
+        <div class="section-title">🛡️ 安全檢查 (5 分)</div>
+        <div class="checkbox-item">
+            <input type="checkbox" id="safetyCard" onchange="calculateScore()">
+            <label class="checkbox-label" for="safetyCard">✅ 安全檢查通行證</label>
+        </div>
+        <div class="checkbox-item">
+            <input type="checkbox" id="jsea" onchange="calculateScore()">
+            <label class="checkbox-label" for="jsea">✅ 已提交 JSEA</label>
+        </div>
+    </div>
+
+    <!-- Organization -->
+    <div id="org" class="tab-content">
+        <div class="section-title">📊 組織效能 (10 分)</div>
+        <div class="sub-task">
+            <div class="sub-task-title">Teamwork (4分)</div>
+            <div class="score-item"><div class="label">指揮鏈明顯</div><div class="input-group"><input type="number" min="0" max="1" value="0" data-cat="org" data-idx="0" onchange="calc()"><span class="max-points">/1</span></div></div>
+            <div class="score-item"><div class="label">角色清晰</div><div class="input-group"><input type="number" min="0" max="1" value="0" data-cat="org" data-idx="1" onchange="calc()"><span class="max-points">/1</span></div></div>
+            <div class="score-item"><div class="label">壓力下鎮定</div><div class="input-group"><input type="number" min="0" max="1" value="0" data-cat="org" data-idx="2" onchange="calc()"><span class="max-points">/1</span></div></div>
+            <div class="score-item"><div class="label">良好溝通</div><div class="input-group"><input type="number" min="0" max="1" value="0" data-cat="org" data-idx="3" onchange="calc()"><span class="max-points">/1</span></div></div>
+        </div>
+        <div class="sub-task">
+            <div class="sub-task-title">Project Management (2分)</div>
+            <div class="score-item"><div class="label">任務計劃周詳</div><div class="input-group"><input type="number" min="0" max="1" value="0" data-cat="org" data-idx="4" onchange="calc()"><span class="max-points">/1</span></div></div>
+            <div class="score-item"><div class="label">有備用計劃</div><div class="input-group"><input type="number" min="0" max="1" value="0" data-cat="org" data-idx="5" onchange="calc()"><span class="max-points">/1</span></div></div>
+        </div>
+        <div class="sub-task">
+            <div class="sub-task-title">Problem Solving (2分)</div>
+            <div class="score-item"><div class="label">時間意識</div><div class="input-group"><input type="number" min="0" max="1" value="0" data-cat="org" data-idx="6" onchange="calc()"><span class="max-points">/1</span></div></div>
+            <div class="score-item"><div class="label">調整時間線</div><div class="input-group"><input type="number" min="0" max="1" value="0" data-cat="org" data-idx="7" onchange="calc()"><span class="max-points">/1</span></div></div>
+        </div>
+        <div class="sub-task">
+            <div class="sub-task-title">System Design (2分)</div>
+            <div class="score-item"><div class="label">5分鐘內部署</div><div class="input-group"><input type="number" min="0" max="1" value="0" data-cat="org" data-idx="8" onchange="calc()"><span class="max-points">/1</span></div></div>
+            <div class="score-item"><div class="label">準備好執行</div><div class="input-group"><input type="number" min="0" max="1" value="0" data-cat="org" data-idx="9" onchange="calc()"><span class="max-points">/1</span></div></div>
+        </div>
+    </div>
+
+    <!-- Weight -->
+    <div id="weight" class="tab-content">
+        <div class="section-title">⚖️ 重量獎勵 (10 分)</div>
+        <div class="weight-selector">
+            <div class="weight-option" onclick="selectWeight(10, this)"><div class="weight-range">&lt;18kg</div><div class="weight-points">+10</div></div>
+            <div class="weight-option" onclick="selectWeight(5, this)"><div class="weight-range">18-25kg</div><div class="weight-points">+5</div></div>
+            <div class="weight-option selected" onclick="selectWeight(0, this)"><div class="weight-range">25-35kg</div><div class="weight-points">+0</div></div>
+            <div class="weight-option" onclick="selectWeight(-999, this)"><div class="weight-range">&gt;35kg</div><div class="weight-points">❌</div></div>
+        </div>
+    </div>
+
+    <!-- Task 1 -->
+    <div id="task1" class="tab-content">
+        <div class="task-header">Task 1: Seabed 2030 (85 分)</div>
+        <div class="sub-task"><div class="sub-task-title">1.1 收集 (30分)</div>
+            <div class="score-item"><div class="label">籃星</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t1" data-idx="0" onchange="calc()"><span class="max-points">/10</span></div></div>
+            <div class="score-item"><div class="label">珊瑚</div><div class="input-group"><input type="number" min="0" max="20" value="0" data-cat="t1" data-idx="1" onchange="calc()"><span class="max-points">/20</span></div></div>
+        </div>
+        <div class="sub-task"><div class="sub-task-title">1.2 建模 (40分)</div>
+            <div class="score-item"><div class="label">攝影測量</div><div class="input-group"><input type="number" min="0" max="20" value="0" data-cat="t1" data-idx="2" onchange="calc()"><span class="max-points">/20</span></div></div>
+            <div class="score-item"><div class="label">顯示目標</div><div class="input-group"><input type="number" min="0" max="15" value="0" data-cat="t1" data-idx="3" onchange="calc()"><span class="max-points">/15</span></div></div>
+            <div class="score-item"><div class="label">測量長度</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t1" data-idx="4" onchange="calc()"><span class="max-points">/10</span></div></div>
+            <div class="score-item"><div class="label">估算高度</div><div class="input-group"><input type="number" min="0" max="5" value="0" data-cat="t1" data-idx="5" onchange="calc()"><span class="max-points">/5</span></div></div>
+        </div>
+        <div class="sub-task"><div class="sub-task-title">1.3 飛越 (15分)</div>
+            <div class="score-item"><div class="label">錄像</div><div class="input-group"><input type="number" min="0" max="15" value="0" data-cat="t1" data-idx="6" onchange="calc()"><span class="max-points">/15</span></div></div>
+        </div>
+    </div>
+
+    <!-- Task 2 -->
+    <div id="task2" class="tab-content">
+        <div class="task-header">Task 2: SmartAtlantic (135 分)</div>
+        <div class="sub-task"><div class="sub-task-title">2.1 入侵物種 (20分)</div>
+            <div class="score-item"><div class="label">識別數量</div><div class="input-group"><input type="number" min="0" max="15" value="0" data-cat="t2" data-idx="0" onchange="calc()"><span class="max-points">/15</span></div></div>
+            <div class="score-item"><div class="label">上傳數據</div><div class="input-group"><input type="number" min="0" max="5" value="0" data-cat="t2" data-idx="1" onchange="calc()"><span class="max-points">/5</span></div></div>
+        </div>
+        <div class="sub-task"><div class="sub-task-title">2.2 冰山 (35分)</div>
+            <div class="score-item"><div class="label">測量周邊</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t2" data-idx="2" onchange="calc()"><span class="max-points">/10</span></div></div>
+            <div class="score-item"><div class="label">龍骨深度</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t2" data-idx="3" onchange="calc()"><span class="max-points">/10</span></div></div>
+            <div class="score-item"><div class="label">威脅級別</div><div class="input-group"><input type="number" min="0" max="15" value="0" data-cat="t2" data-idx="4" onchange="calc()"><span class="max-points">/15</span></div></div>
+        </div>
+        <div class="sub-task"><div class="sub-task-title">2.3 捕魚設備 (20分)</div>
+            <div class="score-item"><div class="label">轉動把手</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t2" data-idx="5" onchange="calc()"><span class="max-points">/10</span></div></div>
+            <div class="score-item"><div class="label">回收龍蝦罐</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t2" data-idx="6" onchange="calc()"><span class="max-points">/10</span></div></div>
+        </div>
+        <div class="sub-task"><div class="sub-task-title">2.4 浮標錨 (15分)</div>
+            <div class="score-item"><div class="label">連接線</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t2" data-idx="7" onchange="calc()"><span class="max-points">/10</span></div></div>
+            <div class="score-item"><div class="label">回收</div><div class="input-group"><input type="number" min="0" max="5" value="0" data-cat="t2" data-idx="8" onchange="calc()"><span class="max-points">/5</span></div></div>
+        </div>
+        <div class="sub-task"><div class="sub-task-title">2.5 觀測站 (45分)</div>
+            <div class="score-item"><div class="label">回收感測器</div><div class="input-group"><input type="number" min="0" max="15" value="0" data-cat="t2" data-idx="9" onchange="calc()"><span class="max-points">/15</span></div></div>
+            <div class="score-item"><div class="label">分析數據</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t2" data-idx="10" onchange="calc()"><span class="max-points">/10</span></div></div>
+            <div class="score-item"><div class="label">安裝感測器</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t2" data-idx="11" onchange="calc()"><span class="max-points">/10</span></div></div>
+            <div class="score-item"><div class="label">連接</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t2" data-idx="12" onchange="calc()"><span class="max-points">/10</span></div></div>
+        </div>
+    </div>
+
+    <!-- Task 3 -->
+    <div id="task3" class="tab-content">
+        <div class="task-header">Task 3: Wind Platform (60 分)</div>
+        <div class="sub-task"><div class="sub-task-title">3.1 微樁 (30分)</div>
+            <div class="score-item"><div class="label">氣泡幕</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t3" data-idx="0" onchange="calc()"><span class="max-points">/10</span></div></div>
+            <div class="score-item"><div class="label">引導</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t3" data-idx="1" onchange="calc()"><span class="max-points">/10</span></div></div>
+            <div class="score-item"><div class="label">釋放</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t3" data-idx="2" onchange="calc()"><span class="max-points">/10</span></div></div>
+        </div>
+        <div class="sub-task"><div class="sub-task-title">3.2 供電 (30分)</div>
+            <div class="score-item"><div class="label">回收connector</div><div class="input-group"><input type="number" min="0" max="5" value="0" data-cat="t3" data-idx="3" onchange="calc()"><span class="max-points">/5</span></div></div>
+            <div class="score-item"><div class="label">鋪設電纜</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t3" data-idx="4" onchange="calc()"><span class="max-points">/10</span></div></div>
+            <div class="score-item"><div class="label">移除蓋</div><div class="input-group"><input type="number" min="0" max="5" value="0" data-cat="t3" data-idx="5" onchange="calc()"><span class="max-points">/5</span></div></div>
+            <div class="score-item"><div class="label">安裝</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t3" data-idx="6" onchange="calc()"><span class="max-points">/10</span></div></div>
+        </div>
+    </div>
+
+    <!-- Task 4 -->
+    <div id="task4" class="tab-content">
+        <div class="task-header">Task 4: Floats Under Ice (70 分)</div>
+        <div class="sub-task"><div class="sub-task-title">設計 (10分)</div>
+            <div class="score-item"><div class="label">製作浮筒</div><div class="input-group"><input type="number" min="0" max="5" value="0" data-cat="t4" data-idx="0" onchange="calc()"><span class="max-points">/5</span></div></div>
+            <div class="score-item"><div class="label">通訊</div><div class="input-group"><input type="number" min="0" max="5" value="0" data-cat="t4" data-idx="1" onchange="calc()"><span class="max-points">/5</span></div></div>
+        </div>
+        <div class="sub-task"><div class="sub-task-title">第一次剖面 (25分)</div>
+            <div class="score-item"><div class="label">完成</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t4" data-idx="2" onchange="calc()"><span class="max-points">/10</span></div></div>
+            <div class="score-item"><div class="label">2.5m/30s</div><div class="input-group"><input type="number" min="0" max="5" value="0" data-cat="t4" data-idx="3" onchange="calc()"><span class="max-points">/5</span></div></div>
+            <div class="score-item"><div class="label">40cm/30s</div><div class="input-group"><input type="number" min="0" max="5" value="0" data-cat="t4" data-idx="4" onchange="calc()"><span class="max-points">/5</span></div></div>
+            <div class="score-item"><div class="label">撞冰面(扣分)</div><div class="input-group"><input type="number" min="-5" max="0" value="0" data-cat="t4" data-idx="5" onchange="calc()"><span class="max-points">/-5</span></div></div>
+        </div>
+        <div class="sub-task"><div class="sub-task-title">第二次剖面 (25分)</div>
+            <div class="score-item"><div class="label">完成</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t4" data-idx="6" onchange="calc()"><span class="max-points">/10</span></div></div>
+            <div class="score-item"><div class="label">2.5m/30s</div><div class="input-group"><input type="number" min="0" max="5" value="0" data-cat="t4" data-idx="7" onchange="calc()"><span class="max-points">/5</span></div></div>
+            <div class="score-item"><div class="label">40cm/30s</div><div class="input-group"><input type="number" min="0" max="5" value="0" data-cat="t4" data-idx="8" onchange="calc()"><span class="max-points">/5</span></div></div>
+            <div class="score-item"><div class="label">撞冰面(扣分)</div><div class="input-group"><input type="number" min="-5" max="0" value="0" data-cat="t4" data-idx="9" onchange="calc()"><span class="max-points">/-5</span></div></div>
+        </div>
+        <div class="sub-task"><div class="sub-task-title">恢復後 (10分)</div>
+            <div class="score-item"><div class="label">通訊數據</div><div class="input-group"><input type="number" min="0" max="10" value="0" data-cat="t4" data-idx="10" onchange="calc()"><span class="max-points">/10</span></div></div>
+        </div>
+    </div>
+
+    <div class="actions">
+        <button class="action-btn primary" onclick="exportData()">💾 匯出</button>
+        <button class="action-btn secondary" onclick="importData()">📂 匯入</button>
+        <button class="action-btn secondary" onclick="printScore()">🖨️ 列印</button>
+        <button class="action-btn danger" onclick="resetData()">🗑️ 重置</button>
+    </div>
+
+    <input type="file" id="fileInput" style="display:none" accept=".json" onchange="loadFile(event)">
+
+    <script>
+        const scores = { safety: 0, org: 0, weight: 0, t1: 0, t2: 0, t3: 0, t4: 0 };
+        const maxScores = { safety: 5, org: 10, weight: 10, t1: 85, t2: 135, t3: 60, t4: 70 };
+
+        function showTab(id) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function calc() {
+            // Safety
+            scores.safety = (document.getElementById('safetyCard').checked ? 3 : 0) + (document.getElementById('jsea').checked ? 2 : 0);
+            document.getElementById('score-safety').textContent = scores.safety + '/5';
+
+            // Org
+            scores.org = 0;
+            document.querySelectorAll('[data-cat="org"]').forEach(i => scores.org += parseInt(i.value) || 0);
+            document.getElementById('score-org').textContent = scores.org + '/10';
+
+            // Task 1
+            scores.t1 = 0;
+            document.querySelectorAll('[data-cat="t1"]').forEach(i => scores.t1 += parseInt(i.value) || 0);
+            document.getElementById('score-task1').textContent = scores.t1 + '/85';
+
+            // Task 2
+            scores.t2 = 0;
+            document.querySelectorAll('[data-cat="t2"]').forEach(i => scores.t2 += parseInt(i.value) || 0);
+            document.getElementById('score-task2').textContent = scores.t2 + '/135';
+
+            // Task 3
+            scores.t3 = 0;
+            document.querySelectorAll('[data-cat="t3"]').forEach(i => scores.t3 += parseInt(i.value) || 0);
+            document.getElementById('score-task3').textContent = scores.t3 + '/60';
+
+            // Task 4
+            scores.t4 = 0;
+            document.querySelectorAll('[data-cat="t4"]').forEach(i => scores.t4 += parseInt(i.value) || 0);
+            document.getElementById('score-task4').textContent = scores.t4 + '/70';
+
+            const total = scores.safety + scores.org + scores.weight + scores.t1 + scores.t2 + scores.t3 + scores.t4;
+            document.getElementById('totalScore').textContent = total;
+            saveData();
+        }
+
+        function selectWeight(points, el) {
+            document.querySelectorAll('.weight-option').forEach(o => o.classList.remove('selected'));
+            el.classList.add('selected');
+            scores.weight = points === -999 ? 0 : points;
+            if (points === -999) { alert('體重超過35kg不能參賽！'); }
+            document.getElementById('score-weight').textContent = (points === -999 ? 0 : points) + '/10';
+            calc();
+        }
+
+        function saveData() {
+            const data = {
+                teamName: document.getElementById('teamName').value,
+                ceoName: document.getElementById('ceoName').value,
+                judgeName: document.getElementById('judgeName').value,
+                scores: scores,
+                inputs: {}
+            };
+            document.querySelectorAll('input[type="number"]').forEach((i, idx) => data.inputs[idx] = i.value);
+            document.querySelectorAll('input[type="checkbox"]').forEach((i, idx) => data.inputs['cb' + idx] = i.checked);
+            localStorage.setItem('mateRovScoreboard', JSON.stringify(data));
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('mateRovScoreboard');
+            if (saved) {
+                const data = JSON.parse(saved);
+                document.getElementById('teamName').value = data.teamName || '';
+                document.getElementById('ceoName').value = data.ceoName || '';
+                document.getElementById('judgeName').value = data.judgeName || '';
+                if (data.scores) {
+                    scores.weight = data.scores.weight || 0;
+                    document.getElementById('score-weight').textContent = scores.weight + '/10';
+                }
+                if (data.inputs) {
+                    document.querySelectorAll('input[type="number"]').forEach((i, idx) => {
+                        if (data.inputs[idx] !== undefined) i.value = data.inputs[idx];
+                    });
+                    document.querySelectorAll('input[type="checkbox"]').forEach((i, idx) => {
+                        if (data.inputs['cb' + idx] !== undefined) i.checked = data.inputs['cb' + idx];
+                    });
+                }
+                calc();
+            }
+        }
+
+        function exportData() {
+            const data = {
+                teamName: document.getElementById('teamName').value,
+                ceoName: document.getElementById('ceoName').value,
+                judgeName: document.getElementById('judgeName').value,
+                scores: scores,
+                inputs: {}
+            };
+            document.querySelectorAll('input[type="number"]').forEach((i, idx) => data.inputs[idx] = i.value);
+            document.querySelectorAll('input[type="checkbox"]').forEach((i, idx) => data.inputs['cb' + idx] = i.checked);
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'mate-rov-score-' + (data.teamName || 'team') + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importData() { document.getElementById('fileInput').click(); }
+
+        function loadFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    document.getElementById('teamName').value = data.teamName || '';
+                    document.getElementById('ceoName').value = data.ceoName || '';
+                    document.getElementById('judgeName').value = data.judgeName || '';
+                    if (data.scores) {
+                        scores.weight = data.scores.weight || 0;
+                        document.getElementById('score-weight').textContent = scores.weight + '/10';
+                    }
+                    if (data.inputs) {
+                        document.querySelectorAll('input[type="number"]').forEach((i, idx) => {
+                            if (data.inputs[idx] !== undefined) i.value = data.inputs[idx];
+                        });
+                        document.querySelectorAll('input[type="checkbox"]').forEach((i, idx) => {
+                            if (data.inputs['cb' + idx] !== undefined) i.checked = data.inputs['cb' + idx];
+                        });
+                    }
+                    calc();
+                    alert('匯入成功！');
+                } catch(err) { alert('匯入失敗：' + err); }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function printScore() { window.print(); }
+
+        function resetData() {
+            if (!confirm('確定要重置所有數據嗎？')) return;
+            localStorage.removeItem('mateRovScoreboard');
+            location.reload();
+        }
+
+        // Init
+        loadData();
+    </script>
+</body>
+</html>
