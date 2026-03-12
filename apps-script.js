@@ -1,11 +1,13 @@
 // MATE ROV Competition Scoreboard - Google Sheets Backend
+const SHEET_NAME = "MATEROV 2026 Scoreboard (HK) Scores";
+
 const doPost = (e) => {
   try {
     const doc = SpreadsheetApp.getActiveSpreadsheet();
-    const sheet = doc.getActiveSheet();
+    let sheet = doc.getSheetByName(SHEET_NAME);
     
-    // Add headers if row 1 is empty
-    if (sheet.getLastRow() === 0) {
+    if (!sheet) {
+      sheet = doc.insertSheet(SHEET_NAME);
       const headers = ['Timestamp', 'Trial Run', 'Team Name', 'CEO Name', 'Judge Name', 'Safety', 'Org', 'Weight', 'Task 1', 'Task 2', 'Task 3', 'Task 4', 'Total Score', 'Class'];
       sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
     }
