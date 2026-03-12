@@ -201,6 +201,7 @@
         <input type="text" id="teamName" placeholder="Company/Team Name" onchange="saveData()">
         <input type="text" id="ceoName" placeholder="CEO Name" onchange="saveData()">
         <input type="text" id="judgeName" placeholder="Judge Name" onchange="saveData()">
+        <input type="text" id="sheetUrl" placeholder="Google Sheets URL (optional)" onchange="saveData()" style="grid-column: 1 / -1;">
     </div>
 
     <div class="score-display">
@@ -358,6 +359,7 @@
 
     <div class="actions">
         <button class="action-btn primary" onclick="exportData()">💾 Export</button>
+        <button class="action-btn primary" style="background: #4285f4;" onclick="saveToGoogleSheets()">☁️ Save to Sheet</button>
         <button class="action-btn secondary" onclick="importData()">📂 Import</button>
         <button class="action-btn secondary" onclick="printScore()">🖨️ Print</button>
         <button class="action-btn danger" onclick="resetData()">🗑️ Reset</button>
@@ -417,6 +419,7 @@
                 teamName: document.getElementById('teamName').value,
                 ceoName: document.getElementById('ceoName').value,
                 judgeName: document.getElementById('judgeName').value,
+                sheetUrl: document.getElementById('sheetUrl').value,
                 scores: scores,
                 values: values
             };
@@ -430,8 +433,7 @@
                 document.getElementById('teamName').value = data.teamName || '';
                 document.getElementById('ceoName').value = data.ceoName || '';
                 document.getElementById('judgeName').value = data.judgeName || '';
-                if (data.scores) {
-                    scores.weight = data.scores.weight || 0;
+                document.getElementById('sheetUrl').value = data.sheetUrl || '';
                     document.getElementById('score-weight').textContent = scores.weight + '/10';
                 }
                 if (data.values) {
@@ -498,6 +500,48 @@
         }
 
         function printScore() { window.print(); }
+
+        function saveToGoogleSheets() {
+            const sheetUrl = document.getElementById('sheetUrl').value.trim();
+            if (!sheetUrl) {
+                alert('Please enter Google Sheets Web App URL first!');
+                return;
+            }
+            
+            // Extract the Web App URL (remove /edit suffix if present)
+            let apiUrl = sheetUrl.replace(/\/edit$/, '');
+            
+            // If it's a full URL, use it directly
+            if (!apiUrl.startsWith('http')) {
+                apiUrl = 'https://' + apiUrl;
+            }
+            
+            const data = {
+                teamName: document.getElementById('teamName').value,
+                ceoName: document.getElementById('ceoName').value,
+                judgeName: document.getElementById('judgeName').value,
+                rovClass: document.getElementById('rovClass').value,
+                scores: scores,
+                totalScore: scores.safety + scores.org + scores.weight + scores.t1 + scores.t2 + scores.t3 + scores.t4
+            };
+            
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(result => {
+                if (result.result === 'success') {
+                    alert('Score saved to Google Sheets!');
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            })
+            .catch(err => {
+                alert('Failed to save: ' + err.message);
+            });
+        }
 
         function resetData() {
             if (!confirm('Reset all data?')) return;
