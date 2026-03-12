@@ -204,6 +204,7 @@
         <input type="text" id="teamName" placeholder="Company/Team Name" onchange="saveData()">
         <input type="text" id="ceoName" placeholder="CEO Name" onchange="saveData()">
         <input type="number" id="trialRun" min="1" max="5" value="1" onchange="saveData()">
+        <input type="text" id="jsonbinUrl" placeholder="JSONBin URL (optional)" onchange="saveData()" style="grid-column: 1 / -1;">
         <input type="text" id="judgeName" placeholder="Judge Name" onchange="saveData()">
     </div>
 
@@ -362,6 +363,7 @@
 
     <div class="actions">
         <button class="action-btn primary" onclick="exportData()">💾 Export</button>
+        <button class="action-btn primary" style="background: #4285f4;" onclick="saveToCloud()">☁️ Save to Cloud</button>
         <button class="action-btn secondary" onclick="importData()">📂 Import</button>
         <button class="action-btn secondary" onclick="printScore()">🖨️ Print</button>
         <button class="action-btn danger" onclick="resetData()">🗑️ Reset</button>
@@ -422,6 +424,7 @@
                 ceoName: document.getElementById('ceoName').value,
                 judgeName: document.getElementById('judgeName').value,
                 trialRun: document.getElementById('trialRun').value,
+                jsonbinUrl: document.getElementById('jsonbinUrl').value,
                 scores: scores,
                 values: values
             };
@@ -436,6 +439,7 @@
                 document.getElementById('ceoName').value = data.ceoName || '';
                 document.getElementById('judgeName').value = data.judgeName || '';
                 document.getElementById('trialRun').value = data.trialRun || 1;
+                document.getElementById('jsonbinUrl').value = data.jsonbinUrl || '';
                 if (data.scores) {
                     scores.weight = data.scores.weight || 0;
                     document.getElementById('score-weight').textContent = scores.weight + '/10';
@@ -469,6 +473,65 @@
             a.download = 'mate-rov-score-' + (data.teamName || 'team') + '.json';
             a.click();
             URL.revokeObjectURL(url);
+        }
+
+        // JSONBin API Key (provided by user)
+        const JSONBIN_API_KEY = '$2a$10$CbG/1WRA1RYmFXbIrMTr/e3dLyZaZcJzmsjvvh7526JF3yHoRyZyW';
+
+        function saveToCloud() {
+            const jsonbinUrl = document.getElementById('jsonbinUrl').value.trim();
+            
+            const data = {
+                teamName: document.getElementById('teamName').value,
+                ceoName: document.getElementById('ceoName').value,
+                judgeName: document.getElementById('judgeName').value,
+                trialRun: document.getElementById('trialRun').value,
+                rovClass: document.getElementById('rovClass').value,
+                scores: scores,
+                totalScore: scores.safety + scores.org + scores.weight + scores.t1 + scores.t2 + scores.t3 + scores.t4,
+                timestamp: new Date().toISOString()
+            };
+            
+            if (jsonbinUrl) {
+                // Update existing bin
+                fetch(jsonbinUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': JSONBIN_API_KEY
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(res => res.json())
+                .then(result => {
+                    alert('Score saved to JSONBin!');
+                })
+                .catch(err => {
+                    alert('Error: ' + err.message);
+                });
+            } else {
+                // Create new bin
+                fetch('https://api.jsonbin.io/v3/b', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': JSONBIN_API_KEY
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(res => res.json())
+                .then(result => {
+                    // Save the bin URL
+                    document.getElementById('jsonbinUrl').value = result.metadata.id ? 
+                        'https://api.jsonbin.io/v3/b/' + result.metadata.id : 
+                        result.uri;
+                    saveData();
+                    alert('Score saved! URL: ' + (result.metadata.id || result.uri));
+                })
+                .catch(err => {
+                    alert('Error: ' + err.message);
+                });
+            }
         }
 
         function importData() { document.getElementById('fileInput').click(); }
