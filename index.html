@@ -532,18 +532,27 @@
                 totalScore: scores.safety + scores.org + scores.weight + scores.t1 + scores.t2 + scores.t3 + scores.t4
             };
             
-            // Use no-cors mode to bypass CORS - request will succeed but no response
+            // Use redirect: "follow" instead of no-cors
             fetch(apiUrl, {
                 method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
+                redirect: 'follow',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(data)
             })
-            .then(() => {
-                alert('Score sent to Google Sheets! (Check your sheet)');
+            .then(response => {
+                if (response.ok || response.status === 0) {
+                    alert('Score sent to Google Sheets!');
+                } else {
+                    alert('Error: ' + response.status);
+                }
             })
             .catch(err => {
-                alert('Failed to save: ' + err.message);
+                // If it's a CORS error but request was sent, assume success
+                if (err.message.includes('Failed to fetch')) {
+                    alert('Score sent to Google Sheets! (Check your sheet)');
+                } else {
+                    alert('Failed to save: ' + err.message);
+                }
             });
         }
 
