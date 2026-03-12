@@ -521,12 +521,19 @@
                 })
                 .then(res => res.json())
                 .then(result => {
-                    // Save the bin URL
-                    document.getElementById('jsonbinUrl').value = result.metadata.id ? 
-                        'https://api.jsonbin.io/v3/b/' + result.metadata.id : 
-                        result.uri;
-                    saveData();
-                    alert('Score saved! URL: ' + (result.metadata.id || result.uri));
+                    console.log('JSONBin response:', result);
+                    if (result.metadata && result.metadata.id) {
+                        const newUrl = 'https://api.jsonbin.io/v3/b/' + result.metadata.id;
+                        document.getElementById('jsonbinUrl').value = newUrl;
+                        saveData();
+                        alert('Score saved! URL: ' + newUrl);
+                    } else if (result.uri) {
+                        document.getElementById('jsonbinUrl').value = result.uri;
+                        saveData();
+                        alert('Score saved! URL: ' + result.uri);
+                    } else {
+                        alert('Saved! Response: ' + JSON.stringify(result));
+                    }
                 })
                 .catch(err => {
                     alert('Error: ' + err.message);
